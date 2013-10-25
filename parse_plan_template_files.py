@@ -25,12 +25,11 @@ def process_plan_benefits(plans, filename):
 	from openpyxl import load_workbook
 	wb = load_workbook(filename)
 	for sheet_name in wb.get_sheet_names():
+		sheet = wb.get_sheet_by_name(sheet_name)
 		if sheet_name.startswith("Benefits Package "):
-			sheet = wb.get_sheet_by_name(sheet_name)
 			process_plan_benefits_package(plans, sheet)
 		elif sheet_name.startswith("Cost Share Variances "):
-			# TODO: Parse this too!
-			pass
+			process_plan_costs(plans, sheet)
 		elif sheet_name in ("EnableMacros", "DefaultBP", "DefaultCSV", "Names", "Sheet1"):
 			pass
 		else:
@@ -114,6 +113,70 @@ def process_plan_benefits_package(plans, sheet):
 	for plan in plan_list:
 		plan["coverage"] = coverage
 		plans[plan["id"]] = plan
+
+def process_plan_costs(plans, sheet):
+	nrows = sheet.get_highest_row()
+	ncols = sheet.get_highest_column()
+
+	for r in xrange(3, nrows):
+		hios_plan, variant_id = sheet.cell(row=r, column=0).value.split("-")
+		metalic_level = sheet.cell(row=r, column=2).value
+		variant_name = sheet.cell(row=r, column=3).value
+
+		if hios_plan not in plans: raise Exception("Invalid plan found in cost table.")
+		
+		stack = [{}]
+		def push(i, k):
+			while len(stack) > i: stack.pop(-1)
+			stack.append(stack[-1].setdefault(k, {}))
+
+		for c in xrange(4, ncols+1):
+			k1 = sheet.cell(row=0, column=c).value
+			k2 = sheet.cell(row=1, column=c).value
+			k3 = sheet.cell(row=2, column=c).value
+			if k1: push(1, k1)
+			if k2: push(2, k2)
+			v = sheet.cell(row=r, column=c).value
+			if v not in (None, ""):
+				stack[-1][k3] = v
+
+		costs = stack[0]
+		plan = plans[hios_plan]
+
+		if r == 3:
+			# The first variant is the standard plan without any cost sharing with
+			# the government. For simplicity, we'll embed these costs at the top
+			# level of the plan.
+			if variant_id != "01": raise Exception("First variant should be 01?")
+			if variant_name != ("Standard %s On Exchange Plan" % metalic_level): raise Exception("First variant invalid name: " + variant_name)
+
+			plan["deductibles"] = { }
+			plan["maximums"] = { }
+			plan["cost_structure"] = costs
+
+			for k in list(costs): # clone
+				if k in plan["coverage"]:
+					# Some cost information corresponds to covered benefits. Move
+					# that information into the coverage section.
+					plan["coverage"][k]["costs"] = costs[k]
+					del costs[k]
+				elif "Deductible" in k:
+					# Move deductible-related information into its own category.
+					plan["deductibles"][k] = costs[k]
+					del costs[k]
+				elif "Maximum" in k:
+					# Move maximum out of pocket information into its own category.
+					plan["maximums"][k] = costs[k]
+					del costs[k]
+
+		else:
+			# Other variants are for cost sharing. Record the information in a different way.
+			plan.setdefault("variants", {})[variant_id] = {
+				"id": variant_id,
+				"name": variant_name,
+				"costs": costs
+			}
+
 
 def process_plan_rates(plans, filename):
 	from xlrd import open_workbook, xldate_as_tuple

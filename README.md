@@ -19,59 +19,53 @@ I've written a scraper to convert some of this information to JSON. An example f
 
 ### Example Plan
 
-Here's what the data for a plan looks like (with a lot of `coverage` choices and `rate` details cut out):
+Here's what the data for a plan looks like (with a lot of `coverage` choices, `rate` details, and various other fields cut out):
 
 ```json
 {
   "77422DC0060001": {
     "coverage": {
-      "Abortion for Which Public Funding is Prohibited": {
-        "is_covered": "Not Covered"
-      },
-      "Accidental Dental": {
-        "ehb_variance_reason": "Additional EHB Benefit",
-        "excluded_from_in_network_moop": "No",
-        "excluded_from_out_of_network_moop": "No",
-        "exclusions": "Member cost share based on place and type of service.",
-        "is_covered": "Covered",
-        "quantitative_limit": "No",
-        "subject_to_deductible_t1": "Yes",
-        "subject_to_deductible_t2": "No"
-      },
       "Acupuncture": {
         "is_covered": "Not Covered"
-      },
+      }, 
       "Allergy Testing": {
-        "ehb": "Yes",
-        "excluded_from_in_network_moop": "No",
-        "excluded_from_out_of_network_moop": "No",
-        "exclusions": "Member cost share based on place and type of service.",
-        "is_covered": "Covered",
-        "quantitative_limit": "No",
-        "subject_to_deductible_t1": "Yes",
+        "costs": {
+          "Coinsurance": {
+            "In Network (Tier 1)": "No Charge", 
+            "Out of Network": "50% Coinsurance after deductible"
+          }, 
+          "Copay": {
+            "In Network (Tier 1)": "$40 Copay after deductible", 
+            "Out of Network": "No Charge"
+          }
+        }, 
+        "exclusions": "Member cost share based on place and type of service.", 
+        "is_covered": "Covered", 
+        "quantitative_limit": "No", 
+        "subject_to_deductible_t1": "Yes", 
         "subject_to_deductible_t2": "No"
-      },
-      "Bariatric Surgery": {
-        "is_covered": "Not Covered"
-      },
+      }, 
       "Basic Dental Care \u2013 Adult": {
         "is_covered": "Not Covered"
       },
-      "Basic Dental Care \u2013 Child": {
-        "ehb_variance_reason": "Other Law/Regulation",
-        "exclusions": "Minor restorative services include amalgam fillings on posterior teeth and resin composite filling on anterior teeth.  Periodontal root Planning and scaling are limited to 4 separate quadrants every two (2) rolling years.  A number of Basic services listed in this Plan are subject to a dental review or an alternate benefit may be paid.  General anesthesia and intravenous sedation, when specifically covered, and only when done in connection with another medically necessary covered service or supply is eligible.\n",
-        "is_covered": "Not Covered"
-      },
-      "Chemotherapy": {
-        "ehb": "Yes",
-        "excluded_from_in_network_moop": "No",
-        "excluded_from_out_of_network_moop": "No",
-        "exclusions": "Member cost share based on place and type of service.",
-        "is_covered": "Covered",
-        "quantitative_limit": "No",
-        "subject_to_deductible_t1": "Yes",
-        "subject_to_deductible_t2": "No"
-      }
+    },
+    "deductibles": {
+      "Combined Medical and Drug EHB Deductible": {
+        "Combined In/Out Network": {
+          "Family": "Not Applicable", 
+          "Individual": "Not Applicable"
+        }, 
+        "In Network": {
+          "Default Coinsurance": 0, 
+          "Family": 11500, 
+          "Individual": 5750
+        }, 
+        "In Network (Tier 2)": {}, 
+        "Out of Network": {
+          "Family": 23000, 
+          "Individual": 11500
+        }
+      }, 
     },
     "id": "77422DC0060001",
     "issuer": {
@@ -81,6 +75,23 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices and
       "market": "Individual",
       "tin": "06-6033492"
     },
+    "maximums": {
+      "Maximum Out of Pocket for Medical and Drug EHB Benefits (Total)": {
+        "Combined In/Out Network": {
+          "Family": "Not Applicable", 
+          "Individual": "Not Applicable"
+        }, 
+        "In Network": {
+          "Family": 12700, 
+          "Individual": 6350
+        }, 
+        "In Network (Tier 2)": {}, 
+        "Out of Network": {
+          "Family": 25400, 
+          "Individual": 12700
+        }
+      }, 
+    }, 
     "metadata": {
       "brochure_url": "http://www.aetna.com/individuals-families-health-insurance/buy-insurance/exchange/dc.html",
       "child_only_offering": "Allows Adult and Child-Only",
