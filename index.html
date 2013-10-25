@@ -1,0 +1,291 @@
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+
+		<title>DCHBX Plan Comparer</title>
+
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+
+		<style>
+		#big-table > div {
+			width: 8000px;
+			border-bottom: 1px solid #666;
+			padding: .25em;
+		}
+		#big-table .key {
+			float: left;
+			width: 200px;
+		}
+		#big-table .plans {
+			float: left;
+		}
+		#big-table .plans .plan-value {
+			float: left;
+			width: 200px;
+			padding-right: 1.5em;
+			font-size: 85%;
+		}
+		#big-table .plans .plan-value.no-info {
+			color: #888;
+		}
+		#big-table .handle, #big-table .handle-placeholder {
+			float: left;
+			width: 14px;
+		}
+		#big-table .handle {
+			font-size: 12px;
+			color: #777;
+			cursor: move;
+		}
+		#big-table .handle-placeholder {
+			display: none;
+		}
+		#big-table .header { background-color: black; color: white; font-weight: bold; }
+		#big-table .header .handle { display: none; }
+		#big-table .header .handle-placeholder { display: block; }
+
+		.ui-state-placeholder { height: 1.5em; line-height: 1.2em; }
+		
+		.not-covered { color: #A55; }
+		</style>
+
+	</head>
+	<body>
+		<h1>DCHBX Plan Comparer (Unofficial)</h1>
+
+		<p>See <a href="https://github.com/joshdata/dchbx">https://github.com/joshdata/dchbx</a> for more information.</p>
+
+		<div id="big-table">
+		</div>
+
+
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<script src="utils.js"></script>
+
+		<script>
+		var seen_plans = { };
+		var seen_rows = { };
+		var plan_sort_values = { };
+
+		function is_empty(n) {
+			return !/\w/.exec(n.text());
+		}
+
+		function make_cell(key, plan, value) {
+			if (!seen_rows[key]) {
+				var n = $("<div> <div class='handle-placeholder'>&nbsp;</div> <div class='handle'>&#9776;</div> <div class='key'></div> <div class='plans'></div> <div style='clear: both'> </div> </div>")
+
+				n.find('.key').text(key);
+
+				$("#big-table").append(n);
+				seen_rows[key] = n;
+
+				if (key == "Name") n.addClass("header");
+
+				// fill in "No Information" cells in plans already in the table
+				for (var p in seen_plans)
+					fill_missing_cells(p);
+			}
+
+			var row = seen_rows[key].find(".plans");
+
+			var cell = $("<div class='plan-value'> </div>")
+			cell.attr('plan', plan.id)
+
+			var sort_values = [];
+
+			if (value.is_covered == "Not Covered") {
+				cell.text("Not Covered");
+				cell.addClass("not-covered");
+			} else if (value.is_covered == "Covered") {
+				populate_cell(cell, "Coinsurance", value.costs, ["Coinsurance", "In Network (Tier 1)"], sort_values);
+				populate_cell(cell, "Copay", value.costs, ["Copay", "In Network (Tier 1)"], sort_values);
+			} else if (value["In Network"]) {
+				populate_cell(cell, "Combined", value, ["Combined In/Out Network", "Individual"], sort_values);
+				populate_cell(cell, "In Network", value, ["In Network", "Individual"], sort_values);
+				populate_cell(cell, "Out of Network", value, ["Out of Network", "Individual"], sort_values);
+			} else if (key == "Name") {
+				cell.text(value);
+			} else if (key == "Rate (Age 35)") {
+				cell.text(value.rate);
+				sort_values = [value.rate];
+			} else {
+				cell.text(JSON.stringify(value));
+			}
+
+			if (is_empty(cell)) {
+				cell.addClass('no-info');
+				cell.text("No Information");
+				cell.attr("value", JSON.stringify(value))
+			}
+
+			cell.attr('sort_values', sort_values.join(","))
+			plan_sort_values[plan.id + ":" + key] = sort_values;
+
+			row.append(cell);
+		}
+
+		function fill_missing_cells(plan) {
+			$('#big-table > div').each(function() {
+				var n = $(this).find('[plan="' + plan + '"]')
+				if (n.length == 0) {
+					// Plan had no data for this cell.
+					var cell = $("<div class='plan-value no-info'> </div>")
+					cell.attr('plan', plan)
+					cell.text("No Information");
+					$(this).find('.plans').append(cell);
+				}
+			})
+		}
+
+		function init_plan(plan) {
+			// Turn the coverage, deductibles, and maximums keys into rows.
+			make_cell("Name", plan, plan.name);
+			for (var key in plan.deductibles) make_cell(key, plan, plan.deductibles[key]);
+			for (var key in plan.maximums) make_cell(key, plan, plan.maximums[key]);
+			for (var key in plan.coverage) make_cell(key, plan, plan.coverage[key]);
+
+			for (var i in plan.rates)
+				if (plan.rates[i].age == "35")
+					make_cell("Rate (Age 35)", plan, plan.rates[i]);
+
+			seen_plans[plan.id] = true;
+			fill_missing_cells(plan.id);
+		}
+
+		function populate_cell(node, name, obj, path, sort_values) {
+			for (var i in path) {
+				obj = obj[path[i]];
+				if (!obj || obj == "Not Applicable") return;
+			}
+			var n = $("<div class='info-line'> </div>")
+			node.append(n);
+			n.text(name + ": " + obj)
+
+			// parseInt does a nice thing of parsing as far into the string
+			// as it looks like an integer. That helps us locate and take
+			// the first integer we find.
+			sort_values.push(parseInt(obj))
+		}
+
+		function populate_cell2(node, obj) {
+			for (var key in obj) {
+				var n = $("<div class='info-line'> </div>")
+				node.append(n);
+				n.text(key + ": " + JSON.stringify(obj[key]))
+			}
+		}
+
+		function sort_rows_initial() {
+			// Give rows an initial sort from most variability among plans
+			// to least variability, so that keys on which there are no
+			// differences between plans appear at the bottom.
+
+			$('#big-table > div').each(function() {
+				// For this row, make an object mapping values seen in the
+				// table to the number of plans that have that value.
+				var values = { };
+				$(this).find('.plan-value').each(function() {
+					var c = values[$(this).text()] || 0;
+					values[$(this).text()] = c + 1;
+				})
+
+				var minv = -1, maxv = -1;
+				for (var k in values) {
+					if (minv == -1) {
+						minv = values[k];
+						maxv = values[k];
+					}
+					if (values[k] < minv) minv = values[k];
+					if (values[k] > maxv) maxv = values[k];
+				}
+
+				$(this).attr('initial_sort_order', maxv-minv);
+			});
+
+			$('#big-table > div:not(.header)').sortElements(function(a,b) {
+				return parseInt($(a).attr('initial_sort_order')) > parseInt($(b).attr('initial_sort_order')) ? -1 : 1;
+			});
+		}
+
+		function sort_columns(is_initial) {
+			// Sort the plans according to the way the rows are sorted.
+
+			// Map every plan to a sort order. For each plan...
+			var plan_key = { };
+			$('#big-table .header .plans .plan-value').each(function() {
+				var plan = $(this).attr('plan');
+				var values = [];
+				plan_key[plan] = values;
+
+				// Now for each row *in order*...
+				$('#big-table > div:not(.header)').each(function() {
+					var key = $(this).find(".key").text();
+					values.push(plan_sort_values[plan + ":" + key]);
+				});
+			});
+
+			function cmp(a, b) {
+				// compare numbers: all numbers (copay, coinsurance, dedictible, max)
+				if (typeof a == "number" && typeof b == "number") return a-b;
+				if (typeof a == "undefined" && typeof b == "undefined") return 0;
+				if (typeof a == "undefined") return 1;
+				if (typeof b == "undefined") return -1;
+
+				if (a.length != b.length) return b.length - a.length;
+
+				// compare arrays
+				for (var i = 0; i < a.length; i++) {
+					var v = cmp(a[i], b[i]);
+					if (v != 0) return v;
+				}
+
+				return 0;
+			}
+
+			// Sort the plans according to this key, and map plan IDs to their
+			// new desired index.
+			var plans = Object.keys(plan_key);
+			plans.sort(function(a,b) { return cmp(plan_key[a], plan_key[b]); });
+			var plan_index = { };
+			for (var i = 0; i < plans.length; i++) plan_index[plans[i]] = i;
+
+			// In each row, sort the value info by their index in this array.
+			$('#big-table .plans').each(function() {
+				$(this).find('.plan-value').sortElements(function(a,b) {
+					return plan_index[$(a).attr('plan')] - plan_index[$(b).attr('plan')];
+				});
+			});
+		}
+
+		$(function() {
+			$.ajax("plans.json",
+			{
+				success: function(res) {
+					// populate plan data
+					for (var planid in res)
+						init_plan(res[planid]);
+					
+					// give rows an initial sort from most variability to least variability
+					sort_rows_initial();
+
+					sort_columns(true);
+				}
+			});
+
+			$( "#big-table" ).sortable({
+			  axis: "y",
+			  cursor: "move",
+			  containment: "parent",
+			  handle: ".handle",
+		      placeholder: "ui-state-placeholder",
+		      revert: true,
+		      update: function(event, ui) { sort_columns(); }
+		    });
+			$( "#big-table .handle" ).disableSelection();
+			});
+		</script>
+
+	</body>
+</html>
