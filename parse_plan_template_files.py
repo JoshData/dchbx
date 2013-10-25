@@ -56,7 +56,7 @@ def process_plan_benefits_package(plans, sheet):
 
 	plan_list = []
 
-	cols1 = ("plan_name", "hios_product_id", "hpid", "network_id", "service_area_id", "formulary_id", "new_or_existing_plan", "plan_type",
+	cols1 = ("hios_product_id", "hpid", "network_id", "service_area_id", "formulary_id", "new_or_existing_plan", "plan_type",
 		"metalic_level", "unique_plan_design", "qhp", "notice_required_for_pregnancy", "referral_required_for_specialist", "specialists_requiring_referral",
 		"plan_level_exclusions", "limited_cost_sharing_plan_variation_est_adv_payment", "hsa_elligible", "hsa_hra_employer_contribution",
 		"hsa_hra_employer_contribution_amount", "child_only_offering", "child_only_plan_id", "wellness_program_offered", "disease_management_program_offered",
@@ -74,21 +74,24 @@ def process_plan_benefits_package(plans, sheet):
 	for r in xrange(8, 58):
 		hios_plan = sheet.cell(row=r, column=0).value
 		if hios_plan is None: continue
+
+		plan_name = sheet.cell(row=r, column=1).value
 		
 		plan = {
 			"id": hios_plan,
+			"name": plan_name,
+			"market": market_coverage,
+			"is_dental_only": is_dental_only,
 			"issuer": {
 				"id": hios_issuer,
 				"issuer_state": issuer_state,
-				"market": market_coverage,
-				"is_dental_only": is_dental_only,
 				"tin": tin,
 			},
 			"metadata": { },
 		}
 
 		for i, col in enumerate(cols1):
-			v = sheet.cell(row=r, column=i+1).value
+			v = sheet.cell(row=r, column=i+2).value
 			if v is not None:
 				if isinstance(v, datetime): v = v.isoformat()
 				plan["metadata"][col] = v

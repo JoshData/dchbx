@@ -24,6 +24,11 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
 ```json
 {
   "77422DC0060001": {
+    "id": "77422DC0060001",
+    "name": "Aetna Advantage 5750",
+    "is_dental_only": false,
+    "market": "Individual",
+
     "coverage": {
       "Acupuncture": {
         "is_covered": "Not Covered"
@@ -49,6 +54,7 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
         "is_covered": "Not Covered"
       },
     },
+
     "deductibles": {
       "Combined Medical and Drug EHB Deductible": {
         "Combined In/Out Network": {
@@ -67,14 +73,13 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
         }
       }, 
     },
-    "id": "77422DC0060001",
+
     "issuer": {
       "id": 77422,
-      "is_dental_only": false,
       "issuer_state": "DC",
-      "market": "Individual",
       "tin": "06-6033492"
     },
+
     "maximums": {
       "Maximum Out of Pocket for Medical and Drug EHB Benefits (Total)": {
         "Combined In/Out Network": {
@@ -91,7 +96,8 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
           "Individual": 12700
         }
       }, 
-    }, 
+    },
+
     "metadata": {
       "brochure_url": "http://www.aetna.com/individuals-families-health-insurance/buy-insurance/exchange/dc.html",
       "child_only_offering": "Allows Adult and Child-Only",
@@ -118,6 +124,7 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
       "unique_plan_design": "Yes",
       "wellness_program_offered": "Yes"
     },
+    
     "rates": [
       {
         "age": "0-20",
