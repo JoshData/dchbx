@@ -1,9 +1,21 @@
 DCHBX Health Exchange Plans
 ===========================
 
-Parses plan info from the DC health exchange, as gotten from
-a Freedom of Information Act request.
+The District of Columbia elected to create its own health insurance marketplace, which is DCHealthLink.com. I FOIA'd the DC Health Benefit Exchange Authority (DCHBX), the agency in charge of the marketplace, for a list of all of the plans offered on the exchange. (See my [FOIA request](https://github.com/JoshData/dchbx/blob/master/foia_log.html).)
 
+It's all Excel spreadsheets, and kind of a mess, but it's fascinating. It has:
+
+* Plan names for plans available on DCHealthLink (individual and Small Business Health Options Program (SHOP) plans)
+* Price by age of applcant.
+* Tables of benefits of covered services.
+* Tables of copay rates, deductibles, and so on.
+* Lots of other things I don't understand.
+
+Here are the files as I received them:
+
+http://razor.occams.info/files/dchbx_plans_20131024.zip
+
+I've written a scraper to convert some of this information to JSON. An example from plans.json is below.
 
 ### Example Plan
 
