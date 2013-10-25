@@ -185,25 +185,26 @@ def process_plan_rates(plans, filename):
 	from xlrd import open_workbook, xldate_as_tuple
 
 	wb = open_workbook(filename)
-	ws = wb.sheet_by_name("Rate Table")
-	if ws.cell(0,0).value not in ("Rates Table Template v2.2", "Rates Table Template v2.3"): raise Exception("Invalid rates table: " + ws.cell(0,0).value + " in " + filename)
+	for ws in wb.sheets():
+		if not ws.name.startswith("Rate Table"): continue
+		if ws.cell(0,0).value not in ("Rates Table Template v2.2", "Rates Table Template v2.3"): raise Exception("Invalid rates table: " + ws.cell(0,0).value + " in " + filename)
 
-	rate_effective_date = datetime(*xldate_as_tuple(ws.cell(7, 1).value, wb.datemode)).isoformat()
-	rate_expiration_date = datetime(*xldate_as_tuple(ws.cell(8, 1).value, wb.datemode)).isoformat()
+		rate_effective_date = datetime(*xldate_as_tuple(ws.cell(7, 1).value, wb.datemode)).isoformat()
+		rate_expiration_date = datetime(*xldate_as_tuple(ws.cell(8, 1).value, wb.datemode)).isoformat()
 
-	for r in xrange(13, ws.nrows):
-		plan = ws.cell(r, 0).value
-		age = ws.cell(r, 3).value
-		if isinstance(age, float): age = str(int(age))
+		for r in xrange(13, ws.nrows):
+			plan = ws.cell(r, 0).value
+			age = ws.cell(r, 3).value
+			if isinstance(age, float): age = str(int(age))
 
-		plan_rates = plans[plan].setdefault("rates", [])
-		plan_rates.append({
-			"rating_area": ws.cell(r, 1).value,
-			"tobacco_use": ws.cell(r, 2).value,
-			"age": age,
-			"rate": ws.cell(r, 4).value,
-			"effective": rate_effective_date, # applies to all rates, so this isn't the right place to encode it
-			"expires": rate_expiration_date, # applies to all rates, so this isn't the right place to encode it
-		})
+			plan_rates = plans[plan].setdefault("rates", [])
+			plan_rates.append({
+				"rating_area": ws.cell(r, 1).value,
+				"tobacco_use": ws.cell(r, 2).value,
+				"age": age,
+				"rate": ws.cell(r, 4).value,
+				"effective": rate_effective_date, # applies to all rates, so this isn't the right place to encode it
+				"expires": rate_expiration_date, # applies to all rates, so this isn't the right place to encode it
+			})
 
 main()
