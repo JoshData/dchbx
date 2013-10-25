@@ -124,7 +124,7 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
       "unique_plan_design": "Yes",
       "wellness_program_offered": "Yes"
     },
-    
+
     "rates": [
       {
         "age": "0-20",
@@ -135,7 +135,7 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
         "tobacco_use": "No Preference"
       },
       {
-        "age": 21.0,
+        "age": "21",
         "effective": "2014-01-01T00:00:00",
         "expires": "2014-12-31T00:00:00",
         "rate": 201.5,
@@ -143,7 +143,7 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
         "tobacco_use": "No Preference"
       },
       {
-        "age": 22.0,
+        "age": "22",
         "effective": "2014-01-01T00:00:00",
         "expires": "2014-12-31T00:00:00",
         "rate": 201.5,
@@ -151,7 +151,7 @@ Here's what the data for a plan looks like (with a lot of `coverage` choices, `r
         "tobacco_use": "No Preference"
       },
       {
-        "age": 23.0,
+        "age": "23",
         "effective": "2014-01-01T00:00:00",
         "expires": "2014-12-31T00:00:00",
         "rate": 201.5,

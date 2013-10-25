@@ -193,11 +193,14 @@ def process_plan_rates(plans, filename):
 
 	for r in xrange(13, ws.nrows):
 		plan = ws.cell(r, 0).value
+		age = ws.cell(r, 3).value
+		if isinstance(age, float): age = str(int(age))
+
 		plan_rates = plans[plan].setdefault("rates", [])
 		plan_rates.append({
 			"rating_area": ws.cell(r, 1).value,
 			"tobacco_use": ws.cell(r, 2).value,
-			"age": ws.cell(r, 3).value,
+			"age": age,
 			"rate": ws.cell(r, 4).value,
 			"effective": rate_effective_date, # applies to all rates, so this isn't the right place to encode it
 			"expires": rate_expiration_date, # applies to all rates, so this isn't the right place to encode it
