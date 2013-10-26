@@ -144,6 +144,13 @@
 		}
 
 		function init_plan(plan) {
+			// Some plans have a combined deductible and some have it split by medical and drug,
+			// making plans hard to compare. Fill in the combined deductible by summing together
+			// the separate medical and drug deductibles. Do the same for maximum out of pocket
+			// expenses.
+			if (plan.deductibles) combine_medical_drug(plan.deductibles["Combined Medical and Drug EHB Deductible"], plan.deductibles["Medical EHB Deductible"], plan.deductibles["Drug EHB Deductible"]);
+			//if (plan.maximums) combine_medical_drug(plan.maximums["Maximum Out of Pocket for Medical and Drug EHB Benefits (Total)"], plan.maximums["Maximum Out of Pocket for Medical EHB Benefits"], plan.maximums["Maximum Out of Pocket for Drug EHB Benefits"]);
+
 			// Turn the coverage, deductibles, and maximums keys into rows.
 			make_cell("Name", plan, plan.name);
 			for (var key in plan.deductibles) make_cell(key, plan, plan.deductibles[key], "max/deduc");
@@ -156,6 +163,23 @@
 
 			seen_plans[plan.id] = true;
 			fill_missing_cells(plan.id);
+		}
+
+		function combine_medical_drug(d0, d1, d2) {
+			if (jQuery.isEmptyObject(d0["In Network"]) && !jQuery.isEmptyObject(d1["In Network"]) && d1["In Network"]["Individual"] != "Not Applicable") {
+				if (!jQuery.isEmptyObject(d2["Combined In/Out Network"]) && d2["Combined In/Out Network"]["Individual"] != "Not Applicable")
+					d0["In Network"]["Individual"] = (d1["In Network"]["Individual"] + d2["Combined In/Out Network"]["Individual"]) + " (medical+drug)";
+				else if (jQuery.isEmptyObject(d2["In Network"]) || d2["In Network"]["Individual"] == "Not Applicable")
+					d0["In Network"]["Individual"] = d1["In Network"]["Individual"] + " (medical)";
+				else
+					d0["In Network"]["Individual"] = (d1["In Network"]["Individual"] + d2["In Network"]["Individual"]) + " (medical+drug)";
+			}
+			if (jQuery.isEmptyObject(d0["Out of Network"]) && !jQuery.isEmptyObject(d1["Out of Network"]) && d1["Out of Network"]["Individual"] != "Not Applicable") {
+				if (jQuery.isEmptyObject(d2["Out of Network"]) || d2["Out of Network"]["Individual"] == "Not Applicable")
+					d0["Out of Network"]["Individual"] = d1["Out of Network"]["Individual"] + " (medical)";
+				else
+					d0["Out of Network"]["Individual"] = (d1["Out of Network"]["Individual"] + d2["Out of Network"]["Individual"]) + " (medical+drug)";
+			}			
 		}
 
 		function get_value(obj, path) {
