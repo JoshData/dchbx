@@ -146,11 +146,10 @@ def process_plan_costs(plans, sheet):
 		costs = stack[0]
 		plan = plans[hios_plan]
 
-		if r == 3:
+		if variant_id == "01":
 			# The first variant is the standard plan without any cost sharing with
 			# the government. For simplicity, we'll embed these costs at the top
 			# level of the plan.
-			if variant_id != "01": raise Exception("First variant should be 01?")
 			if variant_name != ("Standard %s On Exchange Plan" % metalic_level): raise Exception("First variant invalid name: " + variant_name)
 
 			plan["deductibles"] = { }
