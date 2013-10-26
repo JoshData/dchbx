@@ -159,6 +159,9 @@
 				obj = obj[path[i]];
 				if (!obj || obj == "Not Applicable") return;
 			}
+
+			if (name == "Coinsurance" && typeof obj == "number") obj = (obj*100) + "%(?)"
+
 			var n = $("<div class='info-line'> </div>")
 			node.append(n);
 			n.text(name + ": " + obj)
@@ -166,7 +169,12 @@
 			// parseInt does a nice thing of parsing as far into the string
 			// as it looks like an integer. That helps us locate and take
 			// the first integer we find.
-			sort_values.push(parseInt(obj))
+			if (obj == "No Charge")
+				sort_values.push(0);
+			else if (typeof obj == "string" && obj.substring(0, 1) == "$")
+				sort_values.push(parseInt(obj.substring(1)))
+			else
+				sort_values.push(parseInt(obj))
 		}
 
 		function populate_cell2(node, obj) {
