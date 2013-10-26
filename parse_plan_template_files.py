@@ -4,7 +4,7 @@
 #
 # python parse_plan_template_files.py ../path/to/files > plans.json
 
-import sys, glob
+import sys, glob, copy
 from datetime import datetime
 
 def main():
@@ -114,7 +114,7 @@ def process_plan_benefits_package(plans, sheet):
 	# Apply the coverage table to all plans and add each plan to the
 	# plans dict.
 	for plan in plan_list:
-		plan["coverage"] = coverage
+		plan["coverage"] = copy.deepcopy(coverage)
 		plans[plan["id"]] = plan
 
 def process_plan_costs(plans, sheet):
