@@ -72,7 +72,7 @@
 			return !/\w/.exec(n.text());
 		}
 
-		function make_cell(key, plan, value) {
+		function make_cell(key, plan, value, value_type) {
 			if (!seen_rows[key]) {
 				var n = $("<div> <div class='handle-placeholder'>&nbsp;</div> <div class='handle'>&#9776;</div> <div class='key'></div> <div class='plans'></div> <div style='clear: both'> </div> </div>")
 
@@ -101,8 +101,10 @@
 			} else if (value.is_covered == "Covered") {
 				populate_cell(cell, "Coinsurance", value.costs, ["Coinsurance", "In Network (Tier 1)"], sort_values);
 				populate_cell(cell, "Copay", value.costs, ["Copay", "In Network (Tier 1)"], sort_values);
-			} else if (value["In Network"]) {
-				populate_cell(cell, "Combined", value, ["Combined In/Out Network", "Individual"], sort_values);
+			} else if (value_type == "max/deduc") {
+				if (get_value(value, ["Combined In/Out Network", "Individual"])
+					!= (get_value(value, ["In Network", "Individual"]) || 0) + (get_value(value, ["Out of Network", "Individual"]) || 0))
+					populate_cell(cell, "Amount", value, ["Combined In/Out Network", "Individual"], sort_values);
 				populate_cell(cell, "In Network", value, ["In Network", "Individual"], sort_values);
 				populate_cell(cell, "Out of Network", value, ["Out of Network", "Individual"], sort_values);
 			} else if (key == "Name") {
@@ -142,8 +144,8 @@
 		function init_plan(plan) {
 			// Turn the coverage, deductibles, and maximums keys into rows.
 			make_cell("Name", plan, plan.name);
-			for (var key in plan.deductibles) make_cell(key, plan, plan.deductibles[key]);
-			for (var key in plan.maximums) make_cell(key, plan, plan.maximums[key]);
+			for (var key in plan.deductibles) make_cell(key, plan, plan.deductibles[key], "max/deduc");
+			for (var key in plan.maximums) make_cell(key, plan, plan.maximums[key], "max/deduc");
 			for (var key in plan.coverage) make_cell(key, plan, plan.coverage[key]);
 
 			for (var i in plan.rates)
@@ -154,11 +156,17 @@
 			fill_missing_cells(plan.id);
 		}
 
-		function populate_cell(node, name, obj, path, sort_values) {
+		function get_value(obj, path) {
 			for (var i in path) {
 				obj = obj[path[i]];
 				if (!obj || obj == "Not Applicable") return;
 			}
+			return obj;
+		}
+
+		function populate_cell(node, name, obj, path, sort_values) {
+			obj = get_value(obj, path);
+			if (typeof obj == "undefined") return;
 
 			if (name == "Coinsurance" && typeof obj == "number") obj = (obj*100) + "%(?)"
 
