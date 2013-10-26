@@ -159,7 +159,7 @@
 		function get_value(obj, path) {
 			for (var i in path) {
 				obj = obj[path[i]];
-				if (!obj || obj == "Not Applicable") return;
+				if (typeof obj == "undefined" || obj == "Not Applicable") return;
 			}
 			return obj;
 		}
