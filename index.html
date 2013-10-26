@@ -105,6 +105,8 @@
 				if (get_value(value, ["Combined In/Out Network", "Individual"])
 					!= (get_value(value, ["In Network", "Individual"]) || 0) + (get_value(value, ["Out of Network", "Individual"]) || 0))
 					populate_cell(cell, "Amount", value, ["Combined In/Out Network", "Individual"], sort_values);
+				else
+						sort_values.push(undefined);
 				populate_cell(cell, "In Network", value, ["In Network", "Individual"], sort_values);
 				populate_cell(cell, "Out of Network", value, ["Out of Network", "Individual"], sort_values);
 			} else if (key == "Name") {
@@ -166,7 +168,10 @@
 
 		function populate_cell(node, name, obj, path, sort_values) {
 			obj = get_value(obj, path);
-			if (typeof obj == "undefined") return;
+			if (typeof obj == "undefined") {
+				sort_values.push(undefined);
+				return;
+			}
 
 			if (name == "Coinsurance" && typeof obj == "number") obj = (obj*100) + "%(?)"
 
