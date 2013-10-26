@@ -114,6 +114,9 @@
 			} else if (key == "Rate (Age 35)") {
 				cell.text(value.rate);
 				sort_values = [value.rate];
+			} else if (key == "Uses a Health Savings Account") {
+				cell.text(value);
+				sort_values = [value == "Yes" ? 0 : 1];
 			} else {
 				cell.text(JSON.stringify(value));
 			}
@@ -151,15 +154,21 @@
 			if (plan.deductibles) combine_medical_drug(plan.deductibles["Combined Medical and Drug EHB Deductible"], plan.deductibles["Medical EHB Deductible"], plan.deductibles["Drug EHB Deductible"]);
 			//if (plan.maximums) combine_medical_drug(plan.maximums["Maximum Out of Pocket for Medical and Drug EHB Benefits (Total)"], plan.maximums["Maximum Out of Pocket for Medical EHB Benefits"], plan.maximums["Maximum Out of Pocket for Drug EHB Benefits"]);
 
-			// Turn the coverage, deductibles, and maximums keys into rows.
+			// Make a row for the name of the plan.
 			make_cell("Name", plan, plan.name);
+
+			// Turn the coverage, deductibles, and maximums keys into rows.
 			for (var key in plan.deductibles) make_cell(key, plan, plan.deductibles[key], "max/deduc");
 			for (var key in plan.maximums) make_cell(key, plan, plan.maximums[key], "max/deduc");
 			for (var key in plan.coverage) make_cell(key, plan, plan.coverage[key]);
 
+			// Make a row for the plan's cost.
 			for (var i in plan.rates)
 				if (plan.rates[i].age == "35")
 					make_cell("Rate (Age 35)", plan, plan.rates[i]);
+
+			// Is it an HSA?
+			make_cell("Uses a Health Savings Account", plan, plan.name.indexOf("HSA") >= 0 ? "Yes" : "No");
 
 			seen_plans[plan.id] = true;
 			fill_missing_cells(plan.id);
