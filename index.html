@@ -122,6 +122,9 @@
 			} else if (key == "Uses a Health Savings Account") {
 				cell.text(value);
 				sort_values = [value == "Yes" ? 0 : 1];
+			} else if (key == "Actuarial Value") {
+				cell.text(value);
+				sort_values = [value];
 			} else {
 				cell.text(JSON.stringify(value));
 			}
@@ -171,6 +174,11 @@
 			for (var i in plan.rates)
 				if (plan.rates[i].age == "35")
 					make_cell("Rate (Age 35)", plan, plan.rates[i]);
+
+			if (plan.cost_structure["Issuer Actuarial Value"])
+				make_cell("Actuarial Value", plan, plan.cost_structure["Issuer Actuarial Value"]);
+			else if (plan.cost_structure["AV Calculator Output Number*"])
+				make_cell("Actuarial Value", plan, plan.cost_structure["AV Calculator Output Number*"]);
 
 			// Is it an HSA?
 			make_cell("Uses a Health Savings Account", plan, plan.name.indexOf("HSA") >= 0 ? "Yes" : "No");
