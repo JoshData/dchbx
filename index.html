@@ -100,12 +100,17 @@
 
 			var sort_values = [];
 
-			if (value.is_covered == "Not Covered") {
-				cell.text("Not Covered");
-				cell.addClass("not-covered");
-			} else if (value.is_covered == "Covered") {
-				populate_cell(cell, "Coinsurance", value.costs, ["Coinsurance", "In Network (Tier 1)"], sort_values);
-				populate_cell(cell, "Copay", value.costs, ["Copay", "In Network (Tier 1)"], sort_values);
+			if (value_type == "coverage") {
+				if (value.is_covered == "Not Covered") {
+					cell.text("Not Covered");
+					cell.addClass("not-covered");
+				} else if (value.is_covered == "Covered") {
+					populate_cell(cell, "Coinsurance", value.costs, ["Coinsurance", "In Network (Tier 1)"], sort_values);
+					populate_cell(cell, "Copay", value.costs, ["Copay", "In Network (Tier 1)"], sort_values);
+				} else {
+					cell.text("No Information");
+					cell.addClass("not-info");
+				}
 			} else if (value_type == "max/deduc") {
 				if (get_value(value, ["Combined In/Out Network", "Individual"])
 					!= (get_value(value, ["In Network", "Individual"]) || 0) + (get_value(value, ["Out of Network", "Individual"]) || 0))
@@ -165,11 +170,6 @@
 			// Make a row for the name of the plan.
 			make_cell("Name", plan, plan.name);
 
-			// Turn the coverage, deductibles, and maximums keys into rows.
-			for (var key in plan.deductibles) make_cell(key, plan, plan.deductibles[key], "max/deduc");
-			for (var key in plan.maximums) make_cell(key, plan, plan.maximums[key], "max/deduc");
-			for (var key in plan.coverage) make_cell(key, plan, plan.coverage[key]);
-
 			// Make a row for the plan's cost.
 			for (var i in plan.rates)
 				if (plan.rates[i].age == "35")
@@ -181,7 +181,12 @@
 				make_cell("Actuarial Value", plan, plan.cost_structure["AV Calculator Output Number*"]);
 
 			// Is it an HSA?
-			make_cell("Uses a Health Savings Account", plan, plan.name.indexOf("HSA") >= 0 ? "Yes" : "No");
+			make_cell("Uses an HSA", plan, plan.name.indexOf("HSA") >= 0 ? "Yes" : "No");
+
+			// Turn the coverage, deductibles, and maximums keys into rows.
+			make_cell("Deductible", plan, plan.deductibles["Combined Medical and Drug EHB Deductible"], "max/deduc");
+			make_cell("Maximum Out of Pocket Expenses", plan, plan.maximums["Maximum Out of Pocket for Medical and Drug EHB Benefits (Total)"], "max/deduc");
+			for (var key in plan.coverage) make_cell(key, plan, plan.coverage[key], "coverage");
 
 			seen_plans[plan.id] = true;
 			fill_missing_cells(plan.id);
@@ -335,7 +340,7 @@
 						init_plan(res[planid]);
 					
 					// give rows an initial sort from most variability to least variability
-					sort_rows_initial();
+					//sort_rows_initial();
 
 					sort_columns(true);
 				}
