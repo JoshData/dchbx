@@ -4,24 +4,28 @@
 #
 # python parse_plan_template_files.py ../path/to/files > plans.json
 
-import sys, glob, copy
+import sys, glob, copy, json
 from datetime import datetime
 
 def main():
 	path = sys.argv[1]
 
 	plans = { }
+	plan_variants = { }
 
 	for fn in glob.glob(path + "/*/Individual/*.xlsm"):
-		process_plan_benefits(plans, fn)
+		process_plan_benefits(plans, plan_variants, fn)
 
 	for fn in glob.glob(path + "/*/Individual/*.xls"):
 		process_plan_rates(plans, fn)
 
-	import json
-	print json.dumps(plans, indent=2, sort_keys=True)
+	with open("plans.json", "w") as f:
+		json.dump(plans, f, indent=2, sort_keys=True)
 
-def process_plan_benefits(plans, filename):
+	with open("plan-variants.json", "w") as f:
+		json.dump(plan_variants, f, indent=2, sort_keys=True)
+
+def process_plan_benefits(plans, plan_variants, filename):
 	from openpyxl import load_workbook
 	wb = load_workbook(filename)
 	for sheet_name in wb.get_sheet_names():
@@ -29,7 +33,7 @@ def process_plan_benefits(plans, filename):
 		if sheet_name.startswith("Benefits Package "):
 			process_plan_benefits_package(plans, sheet)
 		elif sheet_name.startswith("Cost Share Variances "):
-			process_plan_costs(plans, sheet)
+			process_plan_costs(plans, sheet, plan_variants)
 		elif sheet_name in ("EnableMacros", "DefaultBP", "DefaultCSV", "Names", "Sheet1"):
 			pass
 		else:
@@ -117,7 +121,7 @@ def process_plan_benefits_package(plans, sheet):
 		plan["coverage"] = copy.deepcopy(coverage)
 		plans[plan["id"]] = plan
 
-def process_plan_costs(plans, sheet):
+def process_plan_costs(plans, sheet, plan_variants):
 	nrows = sheet.get_highest_row()
 	ncols = sheet.get_highest_column()
 
@@ -173,8 +177,9 @@ def process_plan_costs(plans, sheet):
 
 		else:
 			# Other variants are for cost sharing. Record the information in a different way.
-			plan.setdefault("variants", {})[variant_id] = {
-				"id": variant_id,
+			plan_variants.setdefault(hios_plan, {})[variant_id] = {
+				"plan_id": hios_plan,
+				"variant_id": variant_id,
 				"name": variant_name,
 				"costs": costs
 			}
